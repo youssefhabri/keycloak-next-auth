@@ -41,6 +41,8 @@ export default function Home() {
             <strong>{session.user.email ?? session.user.name}</strong>
             <br />
             <strong>{session.user.id}</strong>
+            <br />
+            <strong>{session.user.roles}</strong>
           </span>
           <a
             href={`/api/auth/signout`}

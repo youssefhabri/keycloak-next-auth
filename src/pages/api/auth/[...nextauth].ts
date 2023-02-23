@@ -1,13 +1,14 @@
 import NextAuth from 'next-auth';
 import { JWT } from 'next-auth/jwt';
 import KeycloakProvider from 'next-auth/providers/keycloak';
+import { decodeJwt } from 'jose';
 
 const keycloak = KeycloakProvider({
   id: 'keycloak',
   clientId: process.env.AUTH_CLIENT_ID!,
   clientSecret: process.env.AUTH_CLIENT_SECRET!,
   issuer: process.env.AUTH_ISSUER,
-  authorization: { params: { scope: 'openid email profile roles' } },
+  authorization: { params: { scope: 'openid email profile' } },
 });
 
 // this performs the final handshake for the keycloak
@@ -46,10 +47,17 @@ export default NextAuth({
         token.provider = account.provider;
       }
 
+      if (account?.access_token) {
+        const jwt = decodeJwt(account?.access_token);
+
+        token.roles = jwt.realm_access?.roles || [];
+      }
+
       return token;
     },
     async session({ session, token }) {
       session.user.id = token.sub!;
+      session.user.roles = token.roles! as string[];
 
       return session;
     },
